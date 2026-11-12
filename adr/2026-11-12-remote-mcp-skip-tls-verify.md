@@ -19,17 +19,23 @@ Remote MCP servers are reached over HTTPS by Obot's Go HTTP client (`pkg/mcp` â†
 
 ## Decision
 
-Add an optional `skipTLSVerify` boolean on `RemoteRuntimeConfig` / `RemoteCatalogConfig`. When set, Obot's MCP HTTP and OAuth clients for that server build a transport with `tls.Config.InsecureSkipVerify = true`. Verification remains the default. The setting applies only to Obot's direct connection to the remote URL; when an MCP tunnel is used, the tunnel CLI host still performs its own TLS handshake to the destination.
+Support two opt-in controls that disable TLS verification for Obot's direct remote MCP HTTPS clients:
+
+1. Server-wide: `OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY` / `--mcp-insecure-skip-verify` on `mcp.Options`, stored on `SessionManager`.
+2. Per remote server: `skipTLSVerify` on `RemoteRuntimeConfig` / `RemoteCatalogConfig`.
+
+Either setting causes the MCP HTTP and OAuth clients to use `tls.Config.InsecureSkipVerify = true`. Verification remains the default. Both apply only to Obot's direct connection to the remote URL; when an MCP tunnel is used, the tunnel CLI host still performs its own TLS handshake to the destination.
 
 ## Rationale
 
-A per-server flag matches the existing LLM gateway pattern and avoids a global insecure mode. Trusting a custom CA would be preferable, but operators who need an immediate unblock for private endpoints asked to disable verification for a specific remote server. Scoping the flag to the remote runtime keeps hosted MCP containers and unrelated egress clients unchanged.
+Operators asked for a root-level switch so every internal MCP endpoint with a private CA does not need a per-server toggle. A per-server flag remains useful for narrower exceptions and matches the LLM gateway pattern. Trusting a custom CA would be preferable, but skip-verify is the immediate unblock. Scoping both controls to remote MCP HTTPS keeps hosted MCP containers and unrelated egress clients unchanged.
 
 ## Consequences
 
-- Administrators can enable **Skip TLS certificate verification** under Advanced Configuration for a remote MCP server or catalog entry.
-- Misconfiguration can expose credentials to a man-in-the-middle on that server's path; the UI warns when the option is on.
-- Tunnel-backed remotes still need TLS trust (or an equivalent skip) on the tunnel CLI machine; this flag does not rewrite the CLI's forwarder.
+- Operators can set `OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY=true` (Helm `config.OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY`) for all remote MCP HTTPS from Obot.
+- Administrators can also enable **Skip TLS certificate verification** under Advanced Configuration for one remote MCP server or catalog entry.
+- Misconfiguration can expose credentials to a man-in-the-middle; the UI warns for the per-server option.
+- Tunnel-backed remotes still need TLS trust (or an equivalent skip) on the tunnel CLI machine; these flags do not rewrite the CLI's forwarder.
 - A follow-up may add custom CA trust for remote MCP so skip-verify is not the only enterprise path.
 
 ## References

@@ -35,7 +35,12 @@ If Obot cannot directly reach a remote server, use an [MCP tunnel](./filters-tun
 
 Obot verifies the remote server's TLS certificate against the trust store of the Obot process. A self-signed certificate or a private CA that Obot does not trust fails with `tls: failed to verify certificate: x509: certificate signed by unknown authority`.
 
-Prefer installing the issuing CA into the Obot container or pod trust store when you can. As a last resort, open **Advanced Configuration** for the remote server and enable **Skip TLS certificate verification**. That option disables certificate checks only for Obot's direct HTTPS connection to that server. Prefer a trusted CA in production. When the server is reached through an MCP tunnel, TLS to the destination is terminated on the tunnel CLI host, so that host must trust the certificate (or skip verification there) as well.
+Prefer installing the issuing CA into the Obot container or pod trust store when you can. If you cannot:
+
+- Set `OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY=true` on the Obot server to skip certificate checks for every remote MCP HTTPS connection.
+- Or open **Advanced Configuration** for one remote server and enable **Skip TLS certificate verification**.
+
+Both options disable certificate checks only for Obot's direct HTTPS connection. Prefer a trusted CA in production. When the server is reached through an MCP tunnel, TLS to the destination is terminated on the tunnel CLI host, so that host must trust the certificate (or skip verification there) as well.
 
 ## Caller attribution headers
 

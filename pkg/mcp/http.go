@@ -45,7 +45,7 @@ func (sm *SessionManager) HTTPClientForServer(server ServerConfig, opts HTTPClie
 		Timeout:            opts.Timeout,
 		Headers:            headers,
 		TokenSource:        opts.TokenSource,
-		InsecureSkipVerify: server.SkipTLSVerify,
+		InsecureSkipVerify: sm.insecureSkipVerify || server.SkipTLSVerify,
 	}
 	if k, ok := sm.backend.(*kubernetesBackend); ok && server.MCPServerName != "" {
 		serviceURL := fmt.Sprintf("http://%s.%s.svc.%s", server.MCPServerName, k.mcpNamespace, k.mcpClusterDomain)
@@ -77,6 +77,6 @@ func (sm *SessionManager) OAuthClientForServer(server ServerConfig) (*http.Clien
 		BlockPrivateIP:     !policy.AllowPrivateIPMCP,
 		BlockLinkLocal:     !policy.AllowLinkLocalMCP,
 		Timeout:            timeout,
-		InsecureSkipVerify: server.SkipTLSVerify,
+		InsecureSkipVerify: sm.insecureSkipVerify || server.SkipTLSVerify,
 	}), nil
 }
