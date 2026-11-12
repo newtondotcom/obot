@@ -76,7 +76,8 @@
 					(config as RemoteCatalogConfigAdmin).tunnelName) ||
 				(config.headers && config.headers.length > 0) ||
 				(config as RemoteCatalogConfigAdmin).staticOAuthRequired ||
-				config.localhostCallbackEnabled
+				config.localhostCallbackEnabled ||
+				config.skipTLSVerify
 			)
 		)
 	);
@@ -662,6 +663,51 @@
 {/if}
 
 {#if showAdvanced}
+	<div
+		class="dark:bg-base-200 dark:border-base-400 bg-base-100 flex flex-col gap-4 rounded-lg border border-transparent p-4 shadow-sm"
+	>
+		<div class="flex justify-between gap-4">
+			<button
+				type="button"
+				class="flex grow cursor-pointer flex-col gap-1 text-left"
+				disabled={readonly}
+				onclick={() => {
+					if (readonly) return;
+					config.skipTLSVerify = !config.skipTLSVerify;
+				}}
+			>
+				<div class="flex items-center gap-1">
+					<h4 class={twMerge('text-sm font-semibold', !config.skipTLSVerify && 'opacity-50')}>
+						{m.mcps_catalog_remote_remote_skip_tls_verify()}
+					</h4>
+				</div>
+				<p class="text-muted-content text-xs font-light">
+					{m.mcps_catalog_remote_remote_skip_tls_verify_description()}
+				</p>
+			</button>
+			<div class="flex self-start">
+				<Toggle
+					classes={{ label: 'text-sm text-inherit' }}
+					disabled={readonly}
+					label={config.skipTLSVerify
+						? m.mcps_catalog_remote_remote_disable_skip_tls_verify()
+						: m.mcps_catalog_remote_remote_enable_skip_tls_verify()}
+					checked={!!config.skipTLSVerify}
+					onChange={(checked) => {
+						config.skipTLSVerify = checked;
+					}}
+				/>
+			</div>
+		</div>
+		{#if config.skipTLSVerify}
+			<div class="notification-alert p-3 text-sm font-light" in:slide={{ axis: 'y' }}>
+				<div class="flex items-start gap-3">
+					<TriangleAlert class="mt-0.5 size-5 shrink-0" />
+					<p>{m.mcps_catalog_remote_remote_skip_tls_verify_warning()}</p>
+				</div>
+			</div>
+		{/if}
+	</div>
 	<LocalhostCallbackForm bind:config {readonly} />
 	{#if injectObotHeaders !== undefined}
 		<InjectObotHeaders bind:selected={injectObotHeaders} {readonly} />
@@ -685,6 +731,7 @@
 			catalogConfig.urlTemplate = undefined;
 			catalogConfig.localhostCallbackEnabled = undefined;
 			catalogConfig.localhostCallbackPath = undefined;
+			catalogConfig.skipTLSVerify = undefined;
 			catalogConfig.fixedURL = catalogConfig.fixedURL ?? '';
 		}
 	}}

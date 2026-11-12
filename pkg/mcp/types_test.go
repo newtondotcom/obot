@@ -691,6 +691,32 @@ func TestServerToServerConfig_RemoteTunnelName(t *testing.T) {
 	}
 }
 
+func TestServerToServerConfig_RemoteSkipTLSVerify(t *testing.T) {
+	mcpServer := v1.MCPServer{
+		Spec: v1.MCPServerSpec{
+			Manifest: types.MCPServerManifest{
+				Runtime: types.RuntimeRemote,
+				RemoteConfig: &types.RemoteRuntimeConfig{
+					URL:           "https://example.com/mcp",
+					SkipTLSVerify: true,
+				},
+			},
+		},
+		Name: "test-server",
+	}
+
+	config, missing, err := ServerToServerConfig(mcpServer, nil, "test-user-id", "test-scope", "test-catalog", nil, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(missing) != 0 {
+		t.Fatalf("expected no missing config, got %v", missing)
+	}
+	if !config.SkipTLSVerify {
+		t.Fatal("expected SkipTLSVerify to be copied onto ServerConfig")
+	}
+}
+
 func TestServerToServerConfig_WithPrefix(t *testing.T) {
 	baseURL := "http://localhost:8080"
 	tests := []struct {

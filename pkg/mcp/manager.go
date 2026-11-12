@@ -51,6 +51,7 @@ type Options struct {
 	DisallowLocalhostMCP              bool     `usage:"Disallow MCP containers from connecting to localhost" default:"true"`
 	DisallowPrivateIPMCP              bool     `usage:"Disallow MCP containers from connecting to private IPs" default:"true"`
 	DisallowLinkLocalMCP              bool     `usage:"Disallow MCP containers from connecting to link-local addresses" default:"true"`
+	MCPInsecureSkipVerify             bool     `usage:"Skip TLS certificate verification for all remote MCP HTTPS connections" default:"false" name:"mcp-insecure-skip-verify" env:"OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY"`
 	MCPRuntimeBackend                 string   `usage:"The runtime backend to use for running MCP servers: docker, kubernetes, or k8s. Defaults to docker" default:"docker"`
 	MCPSecretBindingAllowedLabel      string   `usage:"Kubernetes Secret label key required for admin UI secret-binding lookup and save-time validation" default:"obot.obot.ai/allow-secret-binding"`
 	MCPImagePullSecrets               []string `usage:"The name of the image pull secret to use for pulling MCP images"`
@@ -102,6 +103,7 @@ type SessionManager struct {
 	baseURL                   string
 	httpListenPort            int
 	remoteURLValidationConfig RemoteMCPURLValidationConfig
+	insecureSkipVerify        bool
 	resourceMaximums          ResourceMaximums
 	storageClient             kclient.WithWatch
 	gatewayClient             *gateway.Client
@@ -216,7 +218,13 @@ func NewSessionManager(ctx context.Context, authEnabled, devMode bool, globalTok
 		secretBindingAllowedLabel: strings.TrimSpace(opts.MCPSecretBindingAllowedLabel),
 		tunnelManager:             tunnelManager,
 		remoteURLValidationConfig: validationOptions.RemoteMCPURLValidationConfig,
+		insecureSkipVerify:        opts.MCPInsecureSkipVerify,
 	}, nil
+}
+
+// InsecureSkipVerify reports whether Obot skips TLS verification for remote MCP HTTPS.
+func (sm *SessionManager) InsecureSkipVerify() bool {
+	return sm != nil && sm.insecureSkipVerify
 }
 
 func (sm *SessionManager) MCPRuntimeBackend() string {

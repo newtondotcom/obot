@@ -164,6 +164,76 @@ func TestHTTPClientForServer(t *testing.T) {
 		}
 	})
 
+	t.Run("skip TLS verify", func(t *testing.T) {
+		tlsServer := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}))
+		defer tlsServer.Close()
+
+		manager := &SessionManager{
+			backend: backend,
+			remoteURLValidationConfig: RemoteMCPURLValidationConfig{
+				AllowLocalhostMCP: true,
+				AllowPrivateIPMCP: true,
+				AllowLinkLocalMCP: true,
+			},
+		}
+
+		secureClient, err := manager.HTTPClientForServer(ServerConfig{}, HTTPClientOptions{Timeout: timeout})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := secureClient.Get(tlsServer.URL); err == nil {
+			t.Fatal("expected TLS verification to fail against the test server certificate")
+		}
+
+		insecureClient, err := manager.HTTPClientForServer(
+			ServerConfig{SkipTLSVerify: true},
+			HTTPClientOptions{Timeout: timeout},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := insecureClient.Get(tlsServer.URL)
+		if err != nil {
+			t.Fatalf("SkipTLSVerify client GET: %v", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusNoContent {
+			t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusNoContent)
+		}
+	})
+
+	t.Run("global insecure skip verify", func(t *testing.T) {
+		tlsServer := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}))
+		defer tlsServer.Close()
+
+		manager := &SessionManager{
+			backend:            backend,
+			insecureSkipVerify: true,
+			remoteURLValidationConfig: RemoteMCPURLValidationConfig{
+				AllowLocalhostMCP: true,
+				AllowPrivateIPMCP: true,
+				AllowLinkLocalMCP: true,
+			},
+		}
+
+		client, err := manager.HTTPClientForServer(ServerConfig{}, HTTPClientOptions{Timeout: timeout})
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp, err := client.Get(tlsServer.URL)
+		if err != nil {
+			t.Fatalf("global insecure skip verify client GET: %v", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusNoContent {
+			t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusNoContent)
+		}
+	})
+
 	t.Run("direct server options", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if req.Header.Get("X-MCP-Test") != "injected" {

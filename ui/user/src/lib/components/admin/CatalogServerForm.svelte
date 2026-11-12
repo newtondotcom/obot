@@ -317,7 +317,8 @@
 									[],
 								localhostCallbackEnabled: manifest.remoteConfig.localhostCallbackEnabled,
 								localhostCallbackPath: manifest.remoteConfig.localhostCallbackPath,
-								tunnelName: manifest.remoteConfig.tunnelName
+								tunnelName: manifest.remoteConfig.tunnelName,
+								skipTLSVerify: manifest.remoteConfig.skipTLSVerify
 							}
 						: { url: '', headers: [] };
 					break;
@@ -638,7 +639,8 @@
 						staticOAuthRequired: baseData.remoteConfig.staticOAuthRequired,
 						localhostCallbackEnabled: baseData.remoteConfig.localhostCallbackEnabled,
 						localhostCallbackPath: baseData.remoteConfig.localhostCallbackPath?.trim() || undefined,
-						tunnelName: baseData.remoteConfig.tunnelName?.trim() || undefined
+						tunnelName: baseData.remoteConfig.tunnelName?.trim() || undefined,
+						skipTLSVerify: baseData.remoteConfig.skipTLSVerify || undefined
 					};
 				}
 				break;

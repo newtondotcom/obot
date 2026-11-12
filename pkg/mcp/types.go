@@ -41,6 +41,7 @@ type ServerConfig struct {
 	LocalhostCallbackPath    string             `json:"localhostCallbackPath,omitempty"`
 	URL                      string             `json:"url"`
 	TunnelName               string             `json:"tunnelName,omitempty"`
+	SkipTLSVerify            bool               `json:"skipTLSVerify,omitempty"`
 	Headers                  []string           `json:"headers"`
 	InjectObotHeaders        []types.ObotHeader `json:"injectObotHeaders,omitempty"`
 	PassthroughHeaderNames   []string           `json:"passthroughHeaderNames"`
@@ -326,6 +327,7 @@ func configureRemoteRuntime(serverConfig *ServerConfig, remoteConfig *types.Remo
 	serverConfig.LocalhostCallbackEnabled = remoteConfig.LocalhostCallbackEnabled
 	serverConfig.LocalhostCallbackPath = remoteConfig.LocalhostCallbackPath
 	serverConfig.TunnelName = remoteConfig.TunnelName
+	serverConfig.SkipTLSVerify = remoteConfig.SkipTLSVerify
 	serverConfig.Headers = make([]string, 0, len(config))
 
 	var missingRequiredNames []string

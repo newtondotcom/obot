@@ -41,6 +41,8 @@ Keep in mind the gateway will deploy these servers in their own environment on a
 
 By default, Obot also blocks MCP servers from connecting to `localhost` addresses, private IP addresses, or link-local addresses. Administrators can opt out with `OBOT_SERVER_DISALLOW_LOCALHOST_MCP=false`, `OBOT_SERVER_DISALLOW_PRIVATE_IPMCP=false`, or `OBOT_SERVER_DISALLOW_LINK_LOCAL_MCP=false`, but should only do so when the server is expected to reach services inside the Obot runtime environment.
 
+Remote MCP HTTPS connections verify TLS certificates against the Obot process trust store. For self-signed or private-CA endpoints, prefer installing the CA. Administrators can also set `OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY=true` to skip verification for all remote MCP HTTPS from Obot, or enable **Skip TLS certificate verification** on an individual remote server.
+
 **Configuration**: Define parameters that users must provide when enabling the server (e.g., API keys). For each parameter, specify a user-friendly name, description, environment variable name, and whether it's required or sensitive. Values are passed as environment variables to the server process.
 
 ### Multi-user server (legacy) {#multi-user-server}

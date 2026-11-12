@@ -31,6 +31,17 @@ Remote MCP servers that conform to the MCP spec authentication schema will work 
 
 If Obot cannot directly reach a remote server, use an [MCP tunnel](./filters-tunnels.md#mcp-tunnels-create-an-mcp-tunnel) to route requests through a machine on the server's network. Keep the remote server's real HTTP or HTTPS URL and select the tunnel separately in **Advanced Configuration**.
 
+### TLS certificate errors
+
+Obot verifies the remote server's TLS certificate against the trust store of the Obot process. A self-signed certificate or a private CA that Obot does not trust fails with `tls: failed to verify certificate: x509: certificate signed by unknown authority`.
+
+Prefer installing the issuing CA into the Obot container or pod trust store when you can. If you cannot:
+
+- Set `OBOT_SERVER_MCP_INSECURE_SKIP_VERIFY=true` on the Obot server to skip certificate checks for every remote MCP HTTPS connection.
+- Or open **Advanced Configuration** for one remote server and enable **Skip TLS certificate verification**.
+
+Both options disable certificate checks only for Obot's direct HTTPS connection. Prefer a trusted CA in production. When the server is reached through an MCP tunnel, TLS to the destination is terminated on the tunnel CLI host, so that host must trust the certificate (or skip verification there) as well.
+
 ## Caller attribution headers
 
 Remote MCP servers support [caller attribution headers](./server-configuration.md#caller-attribution-headers). Use them to send selected information about the caller authenticated by Obot to the backend. See the shared configuration guide for setup, available headers, and limits.
