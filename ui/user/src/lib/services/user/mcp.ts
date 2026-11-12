@@ -929,7 +929,8 @@ export const convertServerRuntimeFormDataToManifest = (
 					localhostCallbackEnabled: baseData.remoteServerConfig.localhostCallbackEnabled,
 					localhostCallbackPath:
 						baseData.remoteServerConfig.localhostCallbackPath?.trim() || undefined,
-					tunnelName: baseData.remoteServerConfig.tunnelName
+					tunnelName: baseData.remoteServerConfig.tunnelName,
+					skipTLSVerify: baseData.remoteServerConfig.skipTLSVerify || undefined
 				};
 			}
 			break;

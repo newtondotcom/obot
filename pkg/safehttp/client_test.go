@@ -427,6 +427,28 @@ func TestAllowListMatchesExactAndSuffixHosts(t *testing.T) {
 	}
 }
 
+func TestClientInsecureSkipVerify(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	secureClient := NewClient(Options{Timeout: 5 * time.Second})
+	if _, err := secureClient.Get(server.URL); err == nil {
+		t.Fatal("expected TLS verification to fail against the test server certificate")
+	}
+
+	insecureClient := NewClient(Options{Timeout: 5 * time.Second, InsecureSkipVerify: true})
+	resp, err := insecureClient.Get(server.URL)
+	if err != nil {
+		t.Fatalf("InsecureSkipVerify client GET: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusNoContent)
+	}
+}
+
 func TestClientUsesLoopbackProxyForAllowedDestinations(t *testing.T) {
 	var proxied []string
 	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

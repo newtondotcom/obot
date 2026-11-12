@@ -794,6 +794,7 @@ export interface RemoteRuntimeConfigAdmin {
 	localhostCallbackPath?: string;
 	headers?: MCPCatalogEntryFieldManifest[];
 	tunnelName?: string;
+	skipTLSVerify?: boolean;
 	url: string;
 }
 export interface RemoteCatalogConfigAdmin {
@@ -803,6 +804,7 @@ export interface RemoteCatalogConfigAdmin {
 	hostname?: string;
 	staticOAuthRequired?: boolean;
 	tunnelName?: string;
+	skipTLSVerify?: boolean;
 	urlTemplate?: string;
 }
 export interface LegacyRemoteCatalogConfigAdmin extends RemoteCatalogConfigAdmin {

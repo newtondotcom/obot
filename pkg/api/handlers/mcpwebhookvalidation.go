@@ -550,6 +550,7 @@ func systemMCPServerManifestFromCatalogEntry(entry types.SystemMCPServerCatalogE
 			Hostname:                 entry.RemoteConfig.Hostname,
 			LocalhostCallbackEnabled: entry.RemoteConfig.LocalhostCallbackEnabled,
 			LocalhostCallbackPath:    entry.RemoteConfig.LocalhostCallbackPath,
+			SkipTLSVerify:            entry.RemoteConfig.SkipTLSVerify,
 			StaticOAuthRequired:      entry.RemoteConfig.StaticOAuthRequired,
 		}
 	}

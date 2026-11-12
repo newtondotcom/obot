@@ -149,6 +149,7 @@ describe('catalog configuration schema', () => {
 		];
 		form.remoteServerConfig = {
 			url: 'https://example.com',
+			skipTLSVerify: true,
 			headers: [{ ...field, key: 'STATIC_HEADER' }]
 		};
 		form.multiUserConfig = { userDefinedHeaders: [{ ...field, key: 'USER_HEADER' }] };
@@ -167,6 +168,10 @@ describe('catalog configuration schema', () => {
 		expect(manifest).not.toHaveProperty('env');
 		expect(manifest).not.toHaveProperty('multiUserConfig');
 		expect(manifest.remoteConfig).not.toHaveProperty('headers');
+		expect(manifest.remoteConfig).toMatchObject({
+			url: 'https://example.com',
+			skipTLSVerify: true
+		});
 	});
 
 	it('matches missing secret bindings against the configuration usage', () => {

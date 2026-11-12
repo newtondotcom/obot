@@ -75,6 +75,10 @@ type RemoteRuntimeConfig struct {
 	IsTemplate               bool   `json:"isTemplate"`            // Optional: Whether the URL is a template
 	URLTemplate              string `json:"urlTemplate,omitempty"` // URL template for user URLs
 	Hostname                 string `json:"hostname,omitempty"`    // Optional: Hostname constraint the URL conforms to
+	// SkipTLSVerify disables certificate verification for Obot's direct HTTPS
+	// connection to this remote MCP server. Prefer a trusted CA when possible.
+	// It does not affect TLS on a tunnel CLI host when TunnelName is set.
+	SkipTLSVerify bool `json:"skipTLSVerify,omitempty"`
 	// Deprecated: retained only to migrate stored server configuration to Config.
 	DeprecatedHeaders   []MCPHeader `json:"headers,omitempty"`
 	StaticOAuthRequired bool        `json:"staticOAuthRequired,omitempty"` // Indicates static OAuth is required
@@ -88,6 +92,7 @@ type RemoteCatalogConfig struct {
 	TunnelName               string `json:"tunnelName,omitempty"`          // Optional: MCPTunnel used to reach the remote MCP server
 	URLTemplate              string `json:"urlTemplate,omitempty"`         // URL template for user URLs
 	Hostname                 string `json:"hostname,omitempty"`            // Required hostname for user URLs
+	SkipTLSVerify            bool   `json:"skipTLSVerify,omitempty"`       // Optional: skip TLS verify for Obot→server HTTPS
 	StaticOAuthRequired      bool   `json:"staticOAuthRequired,omitempty"` // Indicates static OAuth configuration is required
 }
 
@@ -687,6 +692,7 @@ func (m MCPServerManifest) ConvertToCatalogEntry() MCPServerCatalogEntryManifest
 				TunnelName:               m.RemoteConfig.TunnelName,
 				URLTemplate:              m.RemoteConfig.URLTemplate,
 				Hostname:                 m.RemoteConfig.Hostname,
+				SkipTLSVerify:            m.RemoteConfig.SkipTLSVerify,
 				StaticOAuthRequired:      m.RemoteConfig.StaticOAuthRequired,
 				LocalhostCallbackEnabled: m.RemoteConfig.LocalhostCallbackEnabled,
 				LocalhostCallbackPath:    m.RemoteConfig.LocalhostCallbackPath,
@@ -835,6 +841,7 @@ func MapCatalogEntryToServer(catalogEntry MCPServerCatalogEntryManifest, userURL
 		remoteConfig.StaticOAuthRequired = catalogEntry.RemoteConfig.StaticOAuthRequired
 		remoteConfig.LocalhostCallbackEnabled = catalogEntry.RemoteConfig.LocalhostCallbackEnabled
 		remoteConfig.LocalhostCallbackPath = catalogEntry.RemoteConfig.LocalhostCallbackPath
+		remoteConfig.SkipTLSVerify = catalogEntry.RemoteConfig.SkipTLSVerify
 		serverManifest.RemoteConfig = remoteConfig
 	default:
 		return serverManifest, RuntimeValidationError{

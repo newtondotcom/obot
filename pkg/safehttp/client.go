@@ -2,6 +2,7 @@ package safehttp
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"maps"
@@ -29,6 +30,9 @@ type (
 		TokenSource    oauth2.TokenSource
 		// DialRetryTimeout bounds retries of transient TCP failures before any HTTP bytes are sent.
 		DialRetryTimeout time.Duration
+		// InsecureSkipVerify disables TLS certificate verification for HTTPS requests
+		// made with this client. Prefer trusting a CA when possible.
+		InsecureSkipVerify bool
 	}
 
 	checkingTransport struct {
@@ -79,6 +83,14 @@ func NewSafeTransport(options Options) http.RoundTripper {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	dialer := newSafeDialer(options)
 	transport.DialContext = dialer.DialContext
+	if options.InsecureSkipVerify {
+		tlsConfig := &tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12} //nolint:gosec // Opt-in for remote MCP servers with private CAs.
+		if transport.TLSClientConfig != nil {
+			tlsConfig = transport.TLSClientConfig.Clone()
+			tlsConfig.InsecureSkipVerify = true
+		}
+		transport.TLSClientConfig = tlsConfig
+	}
 	// Requests through the environment's proxy are checked by their destination (see
 	// RoundTrip), and the dialer connects to the proxy itself without checking it: the
 	// operator configured it, and it may well be on a loopback or private address.

@@ -135,3 +135,38 @@ it('preserves localhost callback settings when hiding server configuration', asy
 		.toBeChecked();
 	await expect.element(page.getByLabelText('Callback path')).toHaveValue('/custom');
 });
+
+it('places skip TLS verification under advanced configuration', async () => {
+	const config = reactive({ url: 'https://example.com/mcp' });
+	await render(RemoteRuntimeForm, { variant: 'server', config });
+	const toggle = page.getByRole('switch', { name: /skip TLS verification/i });
+	await expect.element(toggle).not.toBeInTheDocument();
+	await page.getByRole('button', { name: 'Advanced Configuration', exact: true }).click();
+	await expect.element(toggle).toBeVisible();
+	await expect.element(toggle).not.toBeChecked();
+	await toggle.click();
+	expect(config.skipTLSVerify).toBe(true);
+	await expect
+		.element(page.getByText(/disables certificate checks/i))
+		.toBeVisible();
+});
+
+it('opens advanced configuration for an existing skip TLS verification setting', async () => {
+	await render(RemoteRuntimeForm, {
+		variant: 'server',
+		config: reactive({ url: 'https://example.com/mcp', skipTLSVerify: true })
+	});
+	await expect
+		.element(page.getByRole('switch', { name: /skip TLS verification/i }))
+		.toBeChecked();
+});
+
+it('clears skip TLS verification when resetting a catalog entry', async () => {
+	const config = reactive({
+		fixedURL: 'https://example.com/mcp',
+		skipTLSVerify: true
+	});
+	await render(RemoteRuntimeForm, { variant: 'catalog', config });
+	await page.getByRole('button', { name: 'Reset Default Configuration' }).click();
+	expect(config.skipTLSVerify).toBeUndefined();
+});

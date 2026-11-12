@@ -11,6 +11,7 @@ Start with the failing boundary rather than changing several settings at once.
 | vMCP is missing | The user's profiles, or ownership for a personal vMCP |
 | A tool is missing or unexpectedly allowed | Component exposure, all matching profile grants, and instance tool selection |
 | Remote connection fails | Server URL, upstream credentials, and reachability from Obot or its tunnel machine |
+| `x509: certificate signed by unknown authority` on a remote server | Trust the issuing CA in the Obot process, or enable **Skip TLS certificate verification** for that remote server; see [remote TLS certificate errors](./register-remote.md#tls-certificate-errors) |
 | Hosted server fails to start | Runtime/package settings, required configuration, workload events, and [image pull secrets](../configuration/image-pull-secrets.md#troubleshooting) |
 | Private endpoint is unreachable | [Tunnel troubleshooting](../functionality/mcp-tunnels.md#troubleshooting) and its allowlist |
 | Source changes do not appear in a vMCP | For an Obot-managed vMCP, apply its [snapshot update](./publish.md#virtual-mcps-snapshots-and-updates). For a Git-managed vMCP, check source sync errors and component references |

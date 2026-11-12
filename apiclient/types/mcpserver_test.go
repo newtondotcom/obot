@@ -221,6 +221,7 @@ func TestMCPServerManifestConvertToCatalogEntryPreservesRemoteFields(t *testing.
 			TunnelName:          "mcptunnel-office",
 			URLTemplate:         "https://${WORKSPACE}.example.com/mcp",
 			Hostname:            "*.example.com",
+			SkipTLSVerify:       true,
 			StaticOAuthRequired: true,
 		},
 	}
@@ -244,6 +245,9 @@ func TestMCPServerManifestConvertToCatalogEntryPreservesRemoteFields(t *testing.
 	}
 	if len(result.Config) != 1 || result.Config[0].Key != "Authorization" || result.Config[0].Usage != Header {
 		t.Errorf("Expected headers to be copied, got %v", result.Config)
+	}
+	if !result.RemoteConfig.SkipTLSVerify {
+		t.Error("Expected skipTLSVerify to be copied")
 	}
 	if !result.RemoteConfig.StaticOAuthRequired {
 		t.Error("Expected staticOAuthRequired to be copied")
@@ -463,8 +467,9 @@ func TestMapCatalogEntryToServer_RemoteFixedURL(t *testing.T) {
 		Description: "Test remote server description",
 		Runtime:     RuntimeRemote,
 		RemoteConfig: &RemoteCatalogConfig{
-			FixedURL:   "https://api.example.com/mcp",
-			TunnelName: "mcptunnel-office",
+			FixedURL:      "https://api.example.com/mcp",
+			TunnelName:    "mcptunnel-office",
+			SkipTLSVerify: true,
 		},
 	}
 
@@ -486,6 +491,9 @@ func TestMapCatalogEntryToServer_RemoteFixedURL(t *testing.T) {
 	}
 	if result.RemoteConfig.TunnelName != "mcptunnel-office" {
 		t.Errorf("Expected tunnel name 'mcptunnel-office', got %q", result.RemoteConfig.TunnelName)
+	}
+	if !result.RemoteConfig.SkipTLSVerify {
+		t.Error("Expected skipTLSVerify to be copied")
 	}
 }
 

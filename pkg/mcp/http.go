@@ -38,13 +38,14 @@ func (sm *SessionManager) HTTPClientForServer(server ServerConfig, opts HTTPClie
 	remoteValidationConfig, allowedHosts := sm.RemoteConfigForBackend()
 
 	clientOptions := safehttp.Options{
-		BlockLoopback:  !remoteValidationConfig.AllowLocalhostMCP,
-		BlockPrivateIP: !remoteValidationConfig.AllowPrivateIPMCP,
-		BlockLinkLocal: !remoteValidationConfig.AllowLinkLocalMCP,
-		AllowList:      allowedHosts,
-		Timeout:        opts.Timeout,
-		Headers:        headers,
-		TokenSource:    opts.TokenSource,
+		BlockLoopback:      !remoteValidationConfig.AllowLocalhostMCP,
+		BlockPrivateIP:     !remoteValidationConfig.AllowPrivateIPMCP,
+		BlockLinkLocal:     !remoteValidationConfig.AllowLinkLocalMCP,
+		AllowList:          allowedHosts,
+		Timeout:            opts.Timeout,
+		Headers:            headers,
+		TokenSource:        opts.TokenSource,
+		InsecureSkipVerify: server.SkipTLSVerify,
 	}
 	if k, ok := sm.backend.(*kubernetesBackend); ok && server.MCPServerName != "" {
 		serviceURL := fmt.Sprintf("http://%s.%s.svc.%s", server.MCPServerName, k.mcpNamespace, k.mcpClusterDomain)
@@ -72,9 +73,10 @@ func (sm *SessionManager) OAuthClientForServer(server ServerConfig) (*http.Clien
 
 	policy := sm.RemoteMCPURLValidationConfig()
 	return safehttp.NewClient(safehttp.Options{
-		BlockLoopback:  !policy.AllowLocalhostMCP,
-		BlockPrivateIP: !policy.AllowPrivateIPMCP,
-		BlockLinkLocal: !policy.AllowLinkLocalMCP,
-		Timeout:        timeout,
+		BlockLoopback:      !policy.AllowLocalhostMCP,
+		BlockPrivateIP:     !policy.AllowPrivateIPMCP,
+		BlockLinkLocal:     !policy.AllowLinkLocalMCP,
+		Timeout:            timeout,
+		InsecureSkipVerify: server.SkipTLSVerify,
 	}), nil
 }
