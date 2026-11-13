@@ -92,6 +92,9 @@ type ComponentServer struct {
 	URL                 string               `json:"url"`
 	Tools               []types.ToolOverride `json:"tools"`
 	ToolPrefix          string               `json:"toolPrefix"`
+	// Timeout bounds mmmcp discovery and calls for this component. Hosted
+	// components can take longer than mmmcp's 30s discovery default to launch.
+	Timeout time.Duration `json:"timeout,omitempty"`
 }
 
 // ConnectID identifies the connection while Name identifies its backing server.

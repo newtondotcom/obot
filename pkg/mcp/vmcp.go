@@ -183,6 +183,8 @@ func (sm *SessionManager) serverConfigForVMCP(ctx context.Context, vmcp *v1.VMCP
 			URL:                 system.LocalMCPConnectURL(connectID, sm.httpListenPort),
 			Tools:               slices.Clone(component.ToolOverrides),
 			ToolPrefix:          component.ToolPrefix,
+			// Discovery must wait at least as long as Obot allows the component to start.
+			Timeout: time.Duration(server.Spec.Manifest.RuntimeStartupTimeoutSeconds()) * time.Second,
 		})
 	}
 

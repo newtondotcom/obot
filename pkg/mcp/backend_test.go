@@ -47,6 +47,9 @@ func TestConstructMCPServerMMMCPYAML(t *testing.T) {
 	if server.Env["TOKEN"] != "${LITERAL_TOKEN}" {
 		t.Fatalf("TOKEN = %q, want literal interpolation syntax preserved", server.Env["TOKEN"])
 	}
+	if server.Timeout != types.DefaultStartupTimeoutSeconds*time.Second {
+		t.Fatalf("timeout = %s, want %ds", server.Timeout, types.DefaultStartupTimeoutSeconds)
+	}
 }
 
 func TestMMMCPConfigTreatsVMCPAsAggregate(t *testing.T) {
@@ -60,6 +63,7 @@ func TestMMMCPConfigTreatsVMCPAsAggregate(t *testing.T) {
 				DisplayName: "search",
 				URL:         "http://127.0.0.1:8080/mcp-connect/search",
 				ToolPrefix:  "search_",
+				Timeout:     90 * time.Second,
 				Tools: []types.ToolOverride{
 					{
 						Name:                "find",
@@ -79,6 +83,9 @@ func TestMMMCPConfigTreatsVMCPAsAggregate(t *testing.T) {
 	server := config.Servers[0]
 	if server.Name != "search" || server.URL != "http://127.0.0.1:8080/mcp-connect/search" || server.Prefix != "search_" {
 		t.Fatalf("vMCP component = %#v, want preserved name, URL, and prefix", server)
+	}
+	if server.Timeout != 90*time.Second {
+		t.Fatalf("vMCP component timeout = %s, want 90s", server.Timeout)
 	}
 	// The gateway authenticates components itself; forwarding the frontend
 	// Authorization header would pin pooled sessions to an expiring token.
@@ -253,6 +260,38 @@ func TestEnsureServerReadyHealthzPathWaitsForOK(t *testing.T) {
 
 	if calls != 2 {
 		t.Fatalf("expected two healthz calls, got %d", calls)
+	}
+}
+
+func TestMMMCPConfigDefaultsDiscoveryTimeout(t *testing.T) {
+	vmcp := MMMCPConfig(ServerConfig{
+		Runtime: types.RuntimeVMCP,
+		Components: []ComponentServer{{
+			DisplayName: "hosted",
+			URL:         "http://127.0.0.1:8080/mcp-connect/hosted",
+		}},
+	}, nil)
+	if got := vmcp.Servers[0].Timeout; got != types.DefaultStartupTimeoutSeconds*time.Second {
+		t.Fatalf("vMCP default timeout = %s, want %ds", got, types.DefaultStartupTimeoutSeconds)
+	}
+
+	hosted := MMMCPConfig(ServerConfig{
+		MCPServerName: "npx-server",
+		Runtime:       types.RuntimeNPX,
+		Command:       "npx",
+	}, nil)
+	if got := hosted.Servers[0].Timeout; got != types.DefaultStartupTimeoutSeconds*time.Second {
+		t.Fatalf("hosted default timeout = %s, want %ds", got, types.DefaultStartupTimeoutSeconds)
+	}
+
+	custom := MMMCPConfig(ServerConfig{
+		MCPServerName:  "npx-server",
+		Runtime:        types.RuntimeNPX,
+		Command:        "npx",
+		StartupTimeout: 2 * time.Minute,
+	}, nil)
+	if got := custom.Servers[0].Timeout; got != 2*time.Minute {
+		t.Fatalf("hosted custom timeout = %s, want 2m", got)
 	}
 }
 

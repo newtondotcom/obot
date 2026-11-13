@@ -74,6 +74,7 @@ type mmmcpFileServer struct {
 	Command            string            `json:"command,omitempty" yaml:"command,omitempty"`
 	Args               []string          `json:"args,omitempty" yaml:"args,omitempty"`
 	Env                map[string]string `json:"env,omitempty" yaml:"env,omitempty"`
+	Timeout            string            `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 func IsKubernetesBackend(backend string) bool {
@@ -327,6 +328,7 @@ func MMMCPConfig(server ServerConfig, env map[string][]byte) *mmmcpconfig.Config
 				PassthroughHeaders: passthroughHeaders,
 				Tools:              tools,
 				DisableTools:       component.DisableTools,
+				Timeout:            componentDiscoveryTimeout(component.Timeout),
 			})
 		}
 
@@ -366,9 +368,20 @@ func MMMCPConfig(server ServerConfig, env map[string][]byte) *mmmcpconfig.Config
 		Command:            server.Command,
 		Args:               slices.Clone(server.Args),
 		Env:                completeEnv,
+		Timeout:            componentDiscoveryTimeout(server.StartupTimeout),
 	}}
 
 	return config
+}
+
+// componentDiscoveryTimeout returns the timeout mmmcp should use for a component.
+// mmmcp defaults discovery to 30s when Timeout is zero, which is shorter than Obot's
+// default hosted-server startup budget and surfaces as "frontend identity unavailable".
+func componentDiscoveryTimeout(timeout time.Duration) time.Duration {
+	if timeout > 0 {
+		return timeout
+	}
+	return types.DefaultStartupTimeoutSeconds * time.Second
 }
 
 func constructMCPServerMMMCPYAML(server ServerConfig, env map[string][]byte) ([]byte, error) {
@@ -394,6 +407,10 @@ func constructMCPServerMMMCPYAML(server ServerConfig, env map[string][]byte) ([]
 			env[key] = escapeMMMCPInterpolation(value)
 		}
 
+		timeout := ""
+		if server.Timeout > 0 {
+			timeout = server.Timeout.String()
+		}
 		fileConfig.Servers = append(fileConfig.Servers, mmmcpFileServer{
 			Name:               server.Name,
 			URL:                escapeMMMCPInterpolation(server.URL),
@@ -402,6 +419,7 @@ func constructMCPServerMMMCPYAML(server ServerConfig, env map[string][]byte) ([]
 			Command:            escapeMMMCPInterpolation(server.Command),
 			Args:               args,
 			Env:                env,
+			Timeout:            timeout,
 		})
 	}
 
